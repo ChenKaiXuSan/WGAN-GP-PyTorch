@@ -93,11 +93,11 @@ For the FID, I use the pytorch implement of this repository. [FID score for PyTo
 
 For the 10k epochs training on different dataset, compare with about 10000 samples, I get the FID: 
 
-| dataset | wgan | wgan-gp | wgan-div |
-| ---- | ---- | ---- | ---- |
-| MNIST | 47.26201497530761 | 108.48196049057748 | 83.1224650636957 |
-| FASHION-MNIST | 75.43994192943677 | 105.3054054076465 | NULL
-| CIFAR10 | 121.84612610331084 | 160.36441830128024 | 124.66761784583213 |
+| dataset | wgan-gp |
+| ---- | ---- |
+| MNIST | 73.23990328590116
+| FASHION-MNIST | null | 
+| CIFAR10 | null |
  
 > :warning: I dont konw if the FID is right or not, because I cant get the lowwer score like the paper or the other people get it. 
 
