@@ -16,7 +16,6 @@ def get_parameters():
 
     # Model hyper-parameters
     parser.add_argument('--model', type=str, default='wgan-gp', choices=['wgan-gp'])
-    parser.add_argument('--adv_loss', type=str, default='wgan-gp', choices=['wgan-gp', 'gan', 'wgan-div', 'wgan'])
     parser.add_argument('--img_size', type=int, default=64)
     parser.add_argument('--channels', type=int, default=1, help='number of image channels')
     parser.add_argument('--g_num', type=int, default=5, help='train the generator every 5 steps')
@@ -26,7 +25,7 @@ def get_parameters():
     parser.add_argument('--version', type=str, default='test', help='the version of the path, for implement')
 
     # Training setting
-    parser.add_argument('--epochs', type=int, default=10000, help='numer of epochs of training')
+    parser.add_argument('--epochs', type=int, default=10001, help='numer of epochs of training')
     parser.add_argument('--batch_size', type=int, default=64, help='batch size for the dataloader')
     parser.add_argument('--num_workers', type=int, default=2)
 
@@ -48,13 +47,13 @@ def get_parameters():
     # Path
     parser.add_argument('--dataroot', type=str, default='../data', help='dataset path')
     parser.add_argument('--log_path', type=str, default='./logs', help='the output log path')
-    parser.add_argument('--model_save_path', type=str, default='./models', help='model save path')
+    parser.add_argument('--model_save_path', type=str, default='./checkpoint', help='model save path')
     parser.add_argument('--sample_path', type=str, default='./samples', help='the generated sample saved path')
 
     # Step size
-    parser.add_argument('--log_step', type=int, default=10, help='every default{10} epoch save to the log')
-    parser.add_argument('--sample_step', type=int, default=100, help='every default{100} epoch save the generated images and real images')
-    parser.add_argument('--model_save_step', type=float, default=1.0)
+    parser.add_argument('--log_step', type=int, default=100, help='every default{10} epoch save to the log')
+    parser.add_argument('--sample_step', type=int, default=500, help='every default{100} epoch save the generated images and real images')
+    parser.add_argument('--model_save_step', type=int, default=500)
 
 
     return parser.parse_args()
@@ -67,10 +66,14 @@ def main(config):
     # delete the exists path
     del_folder(config.sample_path, config.version)
     del_folder(config.log_path, config.version)
+    del_folder(config.model_save_path, config.version)
 
     # create directories if not exist
     make_folder(config.sample_path, config.version)
     make_folder(config.log_path, config.version)
+    make_folder(config.model_save_path, config.version)
+
+    # save sample images 
     make_folder(config.sample_path, config.version + '/real_images')
     make_folder(config.sample_path, config.version + '/fake_images')
 

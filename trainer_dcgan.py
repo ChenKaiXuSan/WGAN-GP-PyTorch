@@ -29,7 +29,6 @@ class Trainer_dcgan(object):
 
         # exact model and loss 
         self.model = config.model
-        self.adv_loss = config.adv_loss
 
         # model hyper-parameters
         self.imsize = config.img_size 
@@ -54,17 +53,22 @@ class Trainer_dcgan(object):
 
         self.dataset = config.dataset 
         self.use_tensorboard = config.use_tensorboard
+
         # path
         self.image_path = config.dataroot 
         self.log_path = config.log_path
         self.sample_path = config.sample_path
+        self.version = config.version
+
+        # step 
         self.log_step = config.log_step
         self.sample_step = config.sample_step
-        self.version = config.version
+        self.model_save_step = config.model_save_step
 
         # path with version
         self.log_path = os.path.join(config.log_path, self.version)
         self.sample_path = os.path.join(config.sample_path, self.version)
+        self.model_save_path = os.path.join(config.model_save_path, self.version)
 
         if self.use_tensorboard:
             self.build_tensorboard()
@@ -91,10 +95,6 @@ class Trainer_dcgan(object):
                 # configure input 
                 real_images = tensor2var(real_images)
                 
-                # adversarial ground truths
-                valid = tensor2var(torch.full((real_images.size(0),), 0.9)) # (*, )
-                fake = tensor2var(torch.full((real_images.size(0),), 0.0)) #(*, )
-                
                 self.D.train()
                 self.G.train()
                 # ==================== Train D ==================
@@ -105,8 +105,7 @@ class Trainer_dcgan(object):
                 # compute loss with real images 
                 d_out_real = self.D(real_images)
 
-                if self.adv_loss == 'wgan-gp':
-                    d_loss_real = - torch.mean(d_out_real)
+                d_loss_real = - torch.mean(d_out_real)
         
                 # noise z for generator
                 z = tensor2var(torch.randn(real_images.size(0), self.z_dim)) # 64, 100
@@ -114,16 +113,14 @@ class Trainer_dcgan(object):
                 fake_images = self.G(z) # (*, c, 64, 64)
                 d_out_fake = self.D(fake_images) # (*,)
 
-                if self.adv_loss == 'wgan-gp':
-                    d_loss_fake = torch.mean(d_out_fake)
+                d_loss_fake = torch.mean(d_out_fake)
                
                 # total d loss
                 d_loss = d_loss_real + d_loss_fake
 
                 # for the wgan loss function
-                if self.adv_loss == 'wgan-gp':
-                    grad = compute_gradient_penalty(self.D, real_images, fake_images)
-                    d_loss = self.lambda_gp * grad + d_loss
+                grad = compute_gradient_penalty(self.D, real_images, fake_images)
+                d_loss = self.lambda_gp * grad + d_loss
 
                 d_loss.backward()
                 # update D
@@ -143,8 +140,7 @@ class Trainer_dcgan(object):
                     # compute loss with fake images 
                     g_out_fake = self.D(fake_images) # batch x n
 
-                    if self.adv_loss == 'wgan-gp':
-                        g_loss_fake = - torch.mean(g_out_fake)
+                    g_loss_fake = - torch.mean(g_out_fake)
                   
                     g_loss_fake.backward()
                     # update G
@@ -159,7 +155,7 @@ class Trainer_dcgan(object):
             if (epoch) % self.log_step == 0:
                 elapsed = time.time() - start_time
                 elapsed = str(datetime.timedelta(seconds=elapsed))
-                print("Elapsed [{}], G_step [{}/{}], D_step[{}/{}], d_out_gp: {:.4f}, g_loss: {:.4f}, "
+                print("Elapsed [{}], G_step [{}/{}], D_step[{}/{}], d_loss: {:.4f}, g_loss: {:.4f}, "
                     .format(elapsed, epoch, self.epochs, epoch,
                             self.epochs, d_loss.item(), g_loss_fake.item()))
 
@@ -176,8 +172,19 @@ class Trainer_dcgan(object):
                     
                 # sample sample one images
                 # for the FID score
-                self.number = save_sample_one_image(self.sample_path, real_images, fake_images, epoch)
-
+                # self.number = save_sample_one_image(self.sample_path, real_images, fake_images, epoch)
+            
+            # save model checkpoint
+            if (epoch) % self.model_save_step == 0:
+                torch.save({
+                    'epoch': epoch,
+                    'G_state_dict': self.G.state_dict(),
+                    'g_loss': g_loss_fake,
+                    'D_state_dict': self.D.state_dict(),
+                    'd_loss': d_loss,
+                },
+                os.path.join(self.model_save_path, '{}.pth.tar'.format(epoch))
+                )
 
     def build_model(self):
 

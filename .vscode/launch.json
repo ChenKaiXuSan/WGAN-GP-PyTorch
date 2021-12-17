@@ -15,8 +15,6 @@
                 "mnist",
                 "--channels",
                 "1",
-                "--sample_path",
-                "test_sample",
                 "--version",
                 "debug",
                 "--model",
