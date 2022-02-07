@@ -15,7 +15,7 @@ def fid_one_list(filePath, fileNAME, fid_dict={}):
     max_value = int(file_list[-1]) + 1
 
     # start FID calc 
-    for i in range(0, max_value, 100):
+    for i in range(0, 10001, 500):
 
         real_path = ' ' + os.path.join(PATH_with_FILE, str(i)) + '/real_images'
         fake_path = ' ' + os.path.join(PATH_with_FILE, str(i)) + '/fake_images'

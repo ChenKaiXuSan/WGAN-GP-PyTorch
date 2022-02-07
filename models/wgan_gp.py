@@ -138,3 +138,25 @@ class Discriminator(nn.Module):
         validity = self.last_adv(out) # (*, 1, 1, 1)
 
         return validity.squeeze()
+
+#%%
+import sys 
+sys.path.append('..')
+import pprint 
+from torchinfo import summary
+
+if __name__ == "__main__":
+
+    G = Generator().cuda()
+    D = Discriminator().cuda()
+
+    # get model summary as string
+    G_model_stats = summary(G, (64, 100))
+    D_model_stats = summary(D, (64, 1, 64, 64))
+
+    pprint.pprint(G_model_stats)
+    pprint.pprint(D_model_stats)
+
+    summary_str = (G_model_stats), (D_model_stats)
+    with open('model_structure.log', 'w') as tf:
+        pprint.pprint(summary_str, stream=tf)
